@@ -1,0 +1,248 @@
+//CS350
+//Project #3 GUI Components
+//Janet Ruppert
+
+//displays a list of all survey samples entered so far
+
+//a user can click four buttons: add, modify, remove, remove all
+	//add launches dialog box
+	//modify launches dialog box 
+	//remove deletes selected entry
+	//remove all deletes all entries
+
+//attributes have to be left or right aligned and put under corresponding headings
+//list is implemented with JList class
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.awt.event.*;
+
+import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
+public class MainWindow extends JFrame implements ActionListener, ListSelectionListener {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+//creates the four main buttons
+	private  JButton addButton = null;
+	private  JButton modifyButton = null;
+	private  JButton removeButton = null;
+	private  JButton removeallButton = null;
+
+//creates main labels we'll need for Main Window
+	private  JLabel idLabel = null;
+	private  JLabel zipcodeLabel = null;
+	private  JLabel carrierLabel = null;
+	private  JLabel ratingLabel = null;
+	private  JLabel servicesLabel = null;	
+	
+//creates List for holding object CSample and JList for scrollpane
+	private List<CSample> csamplelist;
+	private JList<String> samplelist;
+	private List<String> samplestrings;
+	private String[] ar;
+	public List<CSample> getCSampleList() { return csamplelist; }
+	public void setCSampleList(List<CSample> c) { csamplelist = c; }
+	private int index;
+	private int max;
+	public int getMaxRecNum() {return max; }
+	    
+	
+//creates Main Window
+	public MainWindow() {
+		super("Cell Service Survey");
+	    Container c = getContentPane();
+	    c.setLayout(null);		
+
+	    
+//sets column titles
+	    idLabel = new JLabel("Participant ID");
+		idLabel.setSize( 200, 30 );
+		idLabel.setLocation( 20, 5 );
+		idLabel.setForeground(Color.BLUE);
+		c.add(idLabel);
+
+		zipcodeLabel = new JLabel("Zip Code");
+		zipcodeLabel.setSize( 200, 30 );
+		zipcodeLabel.setLocation( 175, 5 );
+		zipcodeLabel.setForeground(Color.BLUE);
+		c.add(zipcodeLabel);
+
+		carrierLabel = new JLabel("Carrier");
+		carrierLabel.setSize( 200, 30 );
+		carrierLabel.setLocation( 280, 5 );
+		carrierLabel.setForeground(Color.BLUE);
+		c.add(carrierLabel);
+
+		ratingLabel = new JLabel("Rating");
+		ratingLabel.setSize( 200, 30 );
+		ratingLabel.setLocation( 400, 5 );
+		ratingLabel.setForeground(Color.BLUE);
+		c.add(ratingLabel);
+		
+		servicesLabel = new JLabel("Services");
+		servicesLabel.setSize( 200, 30 );
+		servicesLabel.setLocation( 520, 5 );
+		servicesLabel.setForeground(Color.BLUE);
+		c.add(servicesLabel);
+
+//creates box for list of samples 
+		csamplelist = new ArrayList<CSample>();
+		
+		samplelist = new JList<String>();
+		changeList();
+		samplelist.setSize(550,180);
+		samplelist.setLocation(20,30);
+		samplelist.setBorder(BorderFactory.createBevelBorder(1));
+		samplelist.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		samplelist.setFont(new Font("Courier New", Font.PLAIN, 12));
+		samplelist.addListSelectionListener(this);
+		samplelist.setVisible(true);
+		c.add(samplelist);
+		
+		
+//creates four buttons at the bottom of the window		
+		addButton = new JButton("Add");
+		addButton.setSize( 125, 30);
+		addButton.setLocation( 20, 230 );
+		addButton.addActionListener(this);
+		c.add(addButton);
+		
+		modifyButton = new JButton("Modify");
+		modifyButton.setSize( 125, 30 );
+		modifyButton.setLocation( 160, 230 );
+		modifyButton.addActionListener(this);
+		c.add(modifyButton);
+		
+		removeButton = new JButton("Remove");
+		removeButton.setSize( 125, 30 );
+		removeButton.setLocation( 300, 230 );
+		removeButton.addActionListener(this);
+		c.add(removeButton);
+		
+		removeallButton = new JButton("Remove All");
+		removeallButton.setSize( 125, 30 );
+		removeallButton.setLocation( 444, 230 );
+		removeallButton.addActionListener(this);
+		c.add(removeallButton);
+		
+	    setSize(610, 330);
+	    setLocation( 100, 100 );
+	    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    setVisible(true);
+   
+	    max = 0;
+	}
+	
+  /*  public String[] addElement(String[] a, String e) {
+    	a = Arrays.copyOf(a, a.length +1);
+    	String[] b = new String[a.length + 1];
+    	for(int i = 0; i < a.length; i++)
+    	{
+    		b[i] = a[i];
+    	}
+    	b[a.length] = e;
+    	a = b;
+    	return a;
+    }
+    */
+	public void actionPerformed(ActionEvent e) {
+//User clicks Add, new sample is created
+    	if(e.getSource()==addButton) 
+    	{
+    		DialogBox dialog = new DialogBox(this,"Add A Survey Sample", 1, getMaxRecNum(), new CSample(), true);
+    		
+    		if (!dialog.isCancelled()) 
+		    {		
+		    	csamplelist.add(dialog.getSample());
+		    	changeList();
+		    	max++;
+		    }
+    	}
+//User clicks Modify, previous sample is edited
+    	else if(e.getSource()==modifyButton) {
+    		if(index == -1) {return;}
+    		else 
+    		{
+	    		int index = samplelist.getSelectedIndex();
+				if (index >= 0) 
+				{
+					DialogBox dialog = new DialogBox(this, "Modify A Survey Sample", 1, max, csamplelist.get(index), false);					
+					
+					if (!dialog.isCancelled()) 
+					{
+						List<CSample> listcopy = new ArrayList<CSample>(csamplelist);
+						List<CSample> l = new ArrayList<CSample>();
+						for(int i =0; i < listcopy.size(); i++ )
+						{
+							if (i == index) 
+							{
+								l.add(dialog.getSample());						
+							}
+							else 
+							{
+								l.add(listcopy.get(i));
+							}
+						}
+						setCSampleList(l);changeList();
+						
+					}
+				}
+			}
+		}
+
+//User clicks Remove, selected sample is deleted
+		else if(e.getSource() == removeButton) 
+		{
+    		if (index <0) { return;}
+    		else 
+    		{
+				csamplelist.remove(index);
+				changeList();
+    		}
+		}
+//User clicks Remove All, all samples are deleted
+		else if(e.getSource() == removeallButton) {
+
+			/*JOptionPane.showMessageDialog(null, "All survey samples will be removed.", "Message from Cell Service Survey", JOptionPane.WARNING_MESSAGE);
+			*/
+    		csamplelist = new ArrayList<CSample>();
+    		changeList();
+				
+		}
+    }
+
+	public void changeList() {
+    	// update the rows to match the data we have
+    	samplestrings = new ArrayList<String>();
+    	for (CSample s : csamplelist) {
+    		samplestrings.add(s.stringify());
+    	}
+    	ar = new String[csamplelist.size()];
+    	int i = 0;
+    	for (String s : samplestrings) {
+    		ar[i] = s;
+    		i++;
+    	}
+    	samplelist.setListData(ar);
+    }
+    
+	
+	
+	@SuppressWarnings("unused")
+	public static void main(String[] args) {
+		MainWindow mainwindow = new MainWindow();
+	}
+
+	@SuppressWarnings("rawtypes")
+	public void valueChanged(ListSelectionEvent arg0) {
+		JList samplelist1 = (JList)arg0.getSource();
+		index = samplelist1.getSelectedIndex();
+	}
+
+}
